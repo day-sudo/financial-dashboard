@@ -1,0 +1,1043 @@
+<!doctype html>
+<html lang="pt-BR" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Financeiro Empresarial</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #1e293b; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    .card-hover { transition: all 0.3s ease; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+    .tab-active { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+    .status-pago { background: #10b981; }
+    .status-pendente { background: #f59e0b; }
+    .status-atrasado { background: #ef4444; }
+    .gradient-blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+    .gradient-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+    .gradient-red { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+    .gradient-purple { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+    .gradient-orange { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    .gradient-cyan { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+    .gradient-indigo { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
+    .table-row:hover { background: #334155; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade { animation: fadeIn 0.4s ease forwards; }
+    .filter-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-slate-900 text-white overflow-auto">
+  <div class="min-h-full w-full"><!-- Header -->
+   <header class="bg-slate-800 border-b border-slate-700 px-6 py-4">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+     <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg gradient-blue flex items-center justify-center">
+       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+       </svg>
+      </div>
+      <div>
+       <h1 id="dashboard-title" class="text-xl font-bold text-white">Dashboard Financeiro</h1>
+       <p id="company-name" class="text-sm text-slate-400">Empresa ABC Ltda</p>
+      </div>
+     </div>
+     <div class="flex items-center gap-3 text-sm"><span class="text-slate-400">Última atualização:</span> <span class="text-emerald-400 font-medium" id="last-update"></span> <button onclick="refreshData()" class="ml-2 p-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors">
+       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+       </svg></button>
+     </div>
+    </div>
+   </header><!-- Navigation Tabs -->
+   <nav class="bg-slate-800 px-6 py-3 border-b border-slate-700">
+    <div class="flex flex-wrap gap-2"><button onclick="showSection('visao-geral')" class="tab-btn tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all" data-tab="visao-geral"> 📊 Visão Geral </button> <button onclick="showSection('contas-receber')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-700 hover:bg-slate-600 transition-all" data-tab="contas-receber"> 💰 Contas a Receber </button> <button onclick="showSection('contas-pagar')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-700 hover:bg-slate-600 transition-all" data-tab="contas-pagar"> 📋 Contas a Pagar </button> <button onclick="showSection('controle-contabil')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-700 hover:bg-slate-600 transition-all" data-tab="controle-contabil"> 📈 Controle Contábil </button> <button onclick="showSection('fluxo-caixa')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-700 hover:bg-slate-600 transition-all" data-tab="fluxo-caixa"> 💵 Fluxo de Caixa </button>
+    </div>
+   </nav><!-- Filters Bar -->
+   <div class="bg-slate-800/50 px-6 py-4 border-b border-slate-700">
+    <div class="flex flex-wrap items-center gap-4">
+     <div class="flex items-center gap-2">
+      <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+      </svg><span class="text-sm font-medium text-slate-300">Filtros:</span>
+     </div><select id="filter-periodo" onchange="applyFilters()" class="filter-select appearance-none bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"> <option value="all">Todos os Períodos</option> <option value="mes">Este Mês</option> <option value="trimestre">Este Trimestre</option> <option value="ano">Este Ano</option> </select> <select id="filter-status" onchange="applyFilters()" class="filter-select appearance-none bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"> <option value="all">Todos os Status</option> <option value="pago">Pago</option> <option value="pendente">Pendente</option> <option value="atrasado">Atrasado</option> </select> <select id="filter-categoria" onchange="applyFilters()" class="filter-select appearance-none bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"> <option value="all">Todas as Categorias</option> <option value="vendas">Vendas</option> <option value="servicos">Serviços</option> <option value="operacional">Operacional</option> <option value="administrativo">Administrativo</option> </select> <button onclick="clearFilters()" class="px-3 py-2 text-sm text-slate-400 hover:text-white transition-colors"> Limpar Filtros </button>
+    </div>
+   </div><!-- Main Content -->
+   <main class="p-6"><!-- Seção: Visão Geral -->
+    <section id="visao-geral" class="section animate-fade"><!-- KPI Cards -->
+     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-6">
+      <div class="card-hover bg-slate-800 rounded-xl p-4 border border-slate-700">
+       <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-lg gradient-blue flex items-center justify-center">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+         </svg>
+        </div><span class="text-xs text-emerald-400 font-medium">+12.5%</span>
+       </div>
+       <p class="text-slate-400 text-xs mb-1">Saldo em Caixa</p>
+       <p class="text-xl font-bold text-white" id="kpi-saldo">R$ 847.325,00</p>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-4 border border-slate-700">
+       <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-lg gradient-green flex items-center justify-center">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+         </svg>
+        </div><span class="text-xs text-emerald-400 font-medium">+8.3%</span>
+       </div>
+       <p class="text-slate-400 text-xs mb-1">A Receber</p>
+       <p class="text-xl font-bold text-emerald-400" id="kpi-receber">R$ 523.840,00</p>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-4 border border-slate-700">
+       <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-lg gradient-red flex items-center justify-center">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+         </svg>
+        </div><span class="text-xs text-red-400 font-medium">-3.2%</span>
+       </div>
+       <p class="text-slate-400 text-xs mb-1">A Pagar</p>
+       <p class="text-xl font-bold text-red-400" id="kpi-pagar">R$ 289.150,00</p>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-4 border border-slate-700">
+       <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-lg gradient-cyan flex items-center justify-center">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+         </svg>
+        </div><span class="text-xs text-emerald-400 font-medium">+15.7%</span>
+       </div>
+       <p class="text-slate-400 text-xs mb-1">Fluxo de Caixa</p>
+       <p class="text-xl font-bold text-cyan-400" id="kpi-fluxo">R$ 234.690,00</p>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-4 border border-slate-700">
+       <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-lg gradient-purple flex items-center justify-center">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+         </svg>
+        </div><span class="text-xs text-emerald-400 font-medium">+22.1%</span>
+       </div>
+       <p class="text-slate-400 text-xs mb-1">Receita Total</p>
+       <p class="text-xl font-bold text-purple-400" id="kpi-receita">R$ 1.245.780,00</p>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-4 border border-slate-700">
+       <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-lg gradient-orange flex items-center justify-center">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+         </svg>
+        </div><span class="text-xs text-red-400 font-medium">+5.4%</span>
+       </div>
+       <p class="text-slate-400 text-xs mb-1">Despesas</p>
+       <p class="text-xl font-bold text-orange-400" id="kpi-despesas">R$ 876.420,00</p>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-4 border border-slate-700">
+       <div class="flex items-center justify-between mb-3">
+        <div class="w-10 h-10 rounded-lg gradient-indigo flex items-center justify-center">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+         </svg>
+        </div><span class="text-xs text-emerald-400 font-medium">+18.9%</span>
+       </div>
+       <p class="text-slate-400 text-xs mb-1">Resultado Líquido</p>
+       <p class="text-xl font-bold text-indigo-400" id="kpi-resultado">R$ 369.360,00</p>
+      </div>
+     </div><!-- Charts Grid -->
+     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500"></span> Evolução do Fluxo de Caixa Mensal</h3>
+       <div class="h-64">
+        <canvas id="chart-fluxo-mensal"></canvas>
+       </div>
+      </div>
+      <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Receitas vs Despesas</h3>
+       <div class="h-64">
+        <canvas id="chart-receitas-despesas"></canvas>
+       </div>
+      </div>
+     </div>
+    </section><!-- Seção: Contas a Receber -->
+    <section id="contas-receber" class="section hidden">
+     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center gap-3 mb-2">
+        <div class="w-12 h-12 rounded-xl gradient-green flex items-center justify-center">
+         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+         </svg>
+        </div>
+        <div>
+         <p class="text-slate-400 text-sm">Total a Receber</p>
+         <p class="text-2xl font-bold text-emerald-400">R$ 523.840,00</p>
+        </div>
+       </div>
+       <div class="flex items-center gap-2 text-xs text-slate-400"><span class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-400">32 títulos</span> <span>em aberto</span>
+       </div>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center gap-3 mb-2">
+        <div class="w-12 h-12 rounded-xl gradient-orange flex items-center justify-center">
+         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+         </svg>
+        </div>
+        <div>
+         <p class="text-slate-400 text-sm">Vencendo Hoje</p>
+         <p class="text-2xl font-bold text-orange-400">R$ 45.230,00</p>
+        </div>
+       </div>
+       <div class="flex items-center gap-2 text-xs text-slate-400"><span class="px-2 py-1 rounded bg-orange-500/20 text-orange-400">5 títulos</span> <span>para hoje</span>
+       </div>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center gap-3 mb-2">
+        <div class="w-12 h-12 rounded-xl gradient-red flex items-center justify-center">
+         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+         </svg>
+        </div>
+        <div>
+         <p class="text-slate-400 text-sm">Inadimplência</p>
+         <p class="text-2xl font-bold text-red-400">R$ 78.450,00</p>
+        </div>
+       </div>
+       <div class="flex items-center gap-2 text-xs text-slate-400"><span class="px-2 py-1 rounded bg-red-500/20 text-red-400">8 títulos</span> <span>em atraso</span>
+       </div>
+      </div>
+     </div><!-- Charts Row -->
+     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+       <h3 class="text-lg font-semibold mb-4">📅 Valores a Receber por Mês</h3>
+       <div class="h-56">
+        <canvas id="chart-receber-mes"></canvas>
+       </div>
+      </div>
+      <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+       <h3 class="text-lg font-semibold mb-4">⚠️ Análise de Inadimplência</h3>
+       <div class="h-56">
+        <canvas id="chart-inadimplencia"></canvas>
+       </div>
+      </div>
+     </div><!-- Table -->
+     <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+      <div class="p-4 border-b border-slate-700 flex items-center justify-between">
+       <h3 class="text-lg font-semibold">📋 Contas a Receber</h3>
+       <div class="flex items-center gap-2"><input type="text" placeholder="Buscar cliente..." class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"> <button class="px-4 py-2 gradient-blue rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"> + Novo Título </button>
+       </div>
+      </div>
+      <div class="overflow-x-auto">
+       <table class="w-full text-sm">
+        <thead class="bg-slate-700/50">
+         <tr>
+          <th class="text-left p-4 font-medium text-slate-300">Cliente</th>
+          <th class="text-left p-4 font-medium text-slate-300">Emissão</th>
+          <th class="text-left p-4 font-medium text-slate-300">Vencimento</th>
+          <th class="text-right p-4 font-medium text-slate-300">Valor</th>
+          <th class="text-center p-4 font-medium text-slate-300">Status</th>
+          <th class="text-left p-4 font-medium text-slate-300">Forma Pgto</th>
+          <th class="text-center p-4 font-medium text-slate-300">Ações</th>
+         </tr>
+        </thead>
+        <tbody id="table-receber"><!-- Populated by JS -->
+        </tbody>
+       </table>
+      </div>
+     </div>
+    </section><!-- Seção: Contas a Pagar -->
+    <section id="contas-pagar" class="section hidden">
+     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center gap-3 mb-2">
+        <div class="w-12 h-12 rounded-xl gradient-red flex items-center justify-center">
+         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+         </svg>
+        </div>
+        <div>
+         <p class="text-slate-400 text-sm">Total a Pagar</p>
+         <p class="text-2xl font-bold text-red-400">R$ 289.150,00</p>
+        </div>
+       </div>
+       <div class="flex items-center gap-2 text-xs text-slate-400"><span class="px-2 py-1 rounded bg-red-500/20 text-red-400">28 títulos</span> <span>pendentes</span>
+       </div>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center gap-3 mb-2">
+        <div class="w-12 h-12 rounded-xl gradient-orange flex items-center justify-center">
+         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+         </svg>
+        </div>
+        <div>
+         <p class="text-slate-400 text-sm">Vencendo em 7 dias</p>
+         <p class="text-2xl font-bold text-orange-400">R$ 67.890,00</p>
+        </div>
+       </div>
+       <div class="flex items-center gap-2 text-xs text-slate-400"><span class="px-2 py-1 rounded bg-orange-500/20 text-orange-400">12 títulos</span> <span>esta semana</span>
+       </div>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center gap-3 mb-2">
+        <div class="w-12 h-12 rounded-xl gradient-green flex items-center justify-center">
+         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+         </svg>
+        </div>
+        <div>
+         <p class="text-slate-400 text-sm">Pago este Mês</p>
+         <p class="text-2xl font-bold text-emerald-400">R$ 156.320,00</p>
+        </div>
+       </div>
+       <div class="flex items-center gap-2 text-xs text-slate-400"><span class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-400">45 títulos</span> <span>quitados</span>
+       </div>
+      </div>
+     </div><!-- Charts Row -->
+     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+       <h3 class="text-lg font-semibold mb-4">📊 Despesas por Categoria</h3>
+       <div class="h-56">
+        <canvas id="chart-despesas-categoria"></canvas>
+       </div>
+      </div>
+      <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+       <h3 class="text-lg font-semibold mb-4">📈 Despesas Mensais</h3>
+       <div class="h-56">
+        <canvas id="chart-despesas-mensal"></canvas>
+       </div>
+      </div>
+     </div><!-- Table -->
+     <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+      <div class="p-4 border-b border-slate-700 flex items-center justify-between">
+       <h3 class="text-lg font-semibold">📋 Contas a Pagar</h3>
+       <div class="flex items-center gap-2"><input type="text" placeholder="Buscar fornecedor..." class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"> <button class="px-4 py-2 gradient-blue rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"> + Nova Conta </button>
+       </div>
+      </div>
+      <div class="overflow-x-auto">
+       <table class="w-full text-sm">
+        <thead class="bg-slate-700/50">
+         <tr>
+          <th class="text-left p-4 font-medium text-slate-300">Fornecedor</th>
+          <th class="text-left p-4 font-medium text-slate-300">Categoria</th>
+          <th class="text-left p-4 font-medium text-slate-300">Vencimento</th>
+          <th class="text-right p-4 font-medium text-slate-300">Valor</th>
+          <th class="text-center p-4 font-medium text-slate-300">Status</th>
+          <th class="text-left p-4 font-medium text-slate-300">Centro de Custo</th>
+          <th class="text-center p-4 font-medium text-slate-300">Ações</th>
+         </tr>
+        </thead>
+        <tbody id="table-pagar"><!-- Populated by JS -->
+        </tbody>
+       </table>
+      </div>
+     </div>
+    </section><!-- Seção: Controle Contábil -->
+    <section id="controle-contabil" class="section hidden">
+     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 rounded-lg gradient-purple flex items-center justify-center">
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+         </svg>
+        </div><span class="text-slate-400 text-xs">Receita Bruta</span>
+       </div>
+       <p class="text-xl font-bold text-purple-400">R$ 1.456.890,00</p>
+       <p class="text-xs text-emerald-400 mt-1">↑ 18.5% vs anterior</p>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 rounded-lg gradient-blue flex items-center justify-center">
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+         </svg>
+        </div><span class="text-slate-400 text-xs">Receita Líquida</span>
+       </div>
+       <p class="text-xl font-bold text-blue-400">R$ 1.245.780,00</p>
+       <p class="text-xs text-emerald-400 mt-1">↑ 15.2% vs anterior</p>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 rounded-lg gradient-orange flex items-center justify-center">
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+         </svg>
+        </div><span class="text-slate-400 text-xs">Custos Operacionais</span>
+       </div>
+       <p class="text-xl font-bold text-orange-400">R$ 654.230,00</p>
+       <p class="text-xs text-red-400 mt-1">↑ 8.3% vs anterior</p>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 rounded-lg gradient-green flex items-center justify-center">
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+         </svg>
+        </div><span class="text-slate-400 text-xs">Margem de Lucro</span>
+       </div>
+       <p class="text-xl font-bold text-emerald-400">29.6%</p>
+       <p class="text-xs text-emerald-400 mt-1">↑ 2.1pp vs anterior</p>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 rounded-lg gradient-cyan flex items-center justify-center">
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+         </svg>
+        </div><span class="text-slate-400 text-xs">EBITDA</span>
+       </div>
+       <p class="text-xl font-bold text-cyan-400">R$ 478.920,00</p>
+       <p class="text-xs text-emerald-400 mt-1">↑ 22.4% vs anterior</p>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 rounded-lg gradient-indigo flex items-center justify-center">
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+         </svg>
+        </div><span class="text-slate-400 text-xs">Resultado do Período</span>
+       </div>
+       <p class="text-xl font-bold text-indigo-400">R$ 369.360,00</p>
+       <p class="text-xs text-emerald-400 mt-1">↑ 18.9% vs anterior</p>
+      </div>
+     </div><!-- DRE Simplificado -->
+     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+       <h3 class="text-lg font-semibold mb-4">📊 DRE Simplificado</h3>
+       <div class="space-y-3">
+        <div class="flex justify-between items-center p-3 bg-slate-700/50 rounded-lg"><span class="text-slate-300">Receita Bruta</span> <span class="font-bold text-white">R$ 1.456.890,00</span>
+        </div>
+        <div class="flex justify-between items-center p-3 bg-red-500/10 rounded-lg"><span class="text-slate-300">(-) Deduções</span> <span class="font-bold text-red-400">R$ 211.110,00</span>
+        </div>
+        <div class="flex justify-between items-center p-3 bg-blue-500/10 rounded-lg border-l-4 border-blue-500"><span class="text-slate-300 font-medium">= Receita Líquida</span> <span class="font-bold text-blue-400">R$ 1.245.780,00</span>
+        </div>
+        <div class="flex justify-between items-center p-3 bg-red-500/10 rounded-lg"><span class="text-slate-300">(-) Custos Operacionais</span> <span class="font-bold text-red-400">R$ 654.230,00</span>
+        </div>
+        <div class="flex justify-between items-center p-3 bg-purple-500/10 rounded-lg border-l-4 border-purple-500"><span class="text-slate-300 font-medium">= Lucro Bruto</span> <span class="font-bold text-purple-400">R$ 591.550,00</span>
+        </div>
+        <div class="flex justify-between items-center p-3 bg-red-500/10 rounded-lg"><span class="text-slate-300">(-) Despesas Operacionais</span> <span class="font-bold text-red-400">R$ 222.190,00</span>
+        </div>
+        <div class="flex justify-between items-center p-3 bg-emerald-500/10 rounded-lg border-l-4 border-emerald-500"><span class="text-slate-300 font-bold">= Resultado Líquido</span> <span class="font-bold text-emerald-400 text-lg">R$ 369.360,00</span>
+        </div>
+       </div>
+      </div>
+      <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+       <h3 class="text-lg font-semibold mb-4">📈 Evolução do Resultado</h3>
+       <div class="h-72">
+        <canvas id="chart-resultado"></canvas>
+       </div>
+      </div>
+     </div>
+    </section><!-- Seção: Fluxo de Caixa -->
+    <section id="fluxo-caixa" class="section hidden">
+     <div class="flex flex-wrap gap-2 mb-6"><button onclick="setFluxoPeriodo('mes')" class="fluxo-btn px-4 py-2 rounded-lg text-sm font-medium gradient-blue transition-all" data-periodo="mes"> 📅 Mensal </button> <button onclick="setFluxoPeriodo('trimestre')" class="fluxo-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-700 hover:bg-slate-600 transition-all" data-periodo="trimestre"> 📊 Trimestral </button> <button onclick="setFluxoPeriodo('ano')" class="fluxo-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-700 hover:bg-slate-600 transition-all" data-periodo="ano"> 📈 Anual </button>
+     </div>
+     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center justify-between mb-2"><span class="text-slate-400 text-sm">Total de Entradas</span>
+        <div class="w-8 h-8 rounded-lg gradient-green flex items-center justify-center">
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+         </svg>
+        </div>
+       </div>
+       <p class="text-2xl font-bold text-emerald-400" id="fluxo-entradas">R$ 1.245.780,00</p>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center justify-between mb-2"><span class="text-slate-400 text-sm">Total de Saídas</span>
+        <div class="w-8 h-8 rounded-lg gradient-red flex items-center justify-center">
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+         </svg>
+        </div>
+       </div>
+       <p class="text-2xl font-bold text-red-400" id="fluxo-saidas">R$ 876.420,00</p>
+      </div>
+      <div class="card-hover bg-slate-800 rounded-xl p-5 border border-slate-700">
+       <div class="flex items-center justify-between mb-2"><span class="text-slate-400 text-sm">Saldo Acumulado</span>
+        <div class="w-8 h-8 rounded-lg gradient-blue flex items-center justify-center">
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+         </svg>
+        </div>
+       </div>
+       <p class="text-2xl font-bold text-blue-400" id="fluxo-saldo">R$ 369.360,00</p>
+      </div>
+     </div>
+     <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 mb-6">
+      <h3 class="text-lg font-semibold mb-4">💵 Fluxo de Caixa Detalhado</h3>
+      <div class="h-80">
+       <canvas id="chart-fluxo-detalhado"></canvas>
+      </div>
+     </div><!-- Detalhamento por Categoria -->
+     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+       <h3 class="text-lg font-semibold mb-4 text-emerald-400">📥 Entradas por Origem</h3>
+       <div class="space-y-3">
+        <div class="flex items-center justify-between">
+         <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-emerald-500"></div><span class="text-slate-300">Vendas de Produtos</span>
+         </div><span class="font-medium">R$ 687.450,00</span>
+        </div>
+        <div class="w-full bg-slate-700 rounded-full h-2">
+         <div class="bg-emerald-500 h-2 rounded-full" style="width: 55%"></div>
+        </div>
+        <div class="flex items-center justify-between">
+         <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-blue-500"></div><span class="text-slate-300">Prestação de Serviços</span>
+         </div><span class="font-medium">R$ 423.890,00</span>
+        </div>
+        <div class="w-full bg-slate-700 rounded-full h-2">
+         <div class="bg-blue-500 h-2 rounded-full" style="width: 34%"></div>
+        </div>
+        <div class="flex items-center justify-between">
+         <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-purple-500"></div><span class="text-slate-300">Outras Receitas</span>
+         </div><span class="font-medium">R$ 134.440,00</span>
+        </div>
+        <div class="w-full bg-slate-700 rounded-full h-2">
+         <div class="bg-purple-500 h-2 rounded-full" style="width: 11%"></div>
+        </div>
+       </div>
+      </div>
+      <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+       <h3 class="text-lg font-semibold mb-4 text-red-400">📤 Saídas por Destino</h3>
+       <div class="space-y-3">
+        <div class="flex items-center justify-between">
+         <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-red-500"></div><span class="text-slate-300">Fornecedores</span>
+         </div><span class="font-medium">R$ 342.180,00</span>
+        </div>
+        <div class="w-full bg-slate-700 rounded-full h-2">
+         <div class="bg-red-500 h-2 rounded-full" style="width: 39%"></div>
+        </div>
+        <div class="flex items-center justify-between">
+         <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-orange-500"></div><span class="text-slate-300">Folha de Pagamento</span>
+         </div><span class="font-medium">R$ 289.450,00</span>
+        </div>
+        <div class="w-full bg-slate-700 rounded-full h-2">
+         <div class="bg-orange-500 h-2 rounded-full" style="width: 33%"></div>
+        </div>
+        <div class="flex items-center justify-between">
+         <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-yellow-500"></div><span class="text-slate-300">Impostos e Taxas</span>
+         </div><span class="font-medium">R$ 156.890,00</span>
+        </div>
+        <div class="w-full bg-slate-700 rounded-full h-2">
+         <div class="bg-yellow-500 h-2 rounded-full" style="width: 18%"></div>
+        </div>
+        <div class="flex items-center justify-between">
+         <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-pink-500"></div><span class="text-slate-300">Despesas Gerais</span>
+         </div><span class="font-medium">R$ 87.900,00</span>
+        </div>
+        <div class="w-full bg-slate-700 rounded-full h-2">
+         <div class="bg-pink-500 h-2 rounded-full" style="width: 10%"></div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </section>
+   </main><!-- Footer -->
+   <footer class="bg-slate-800 border-t border-slate-700 px-6 py-4 mt-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-sm text-slate-400">
+     <div class="flex items-center gap-4"><span>Dashboard Financeiro v2.0</span> <span class="hidden md:inline">•</span> <span class="hidden md:inline">Desenvolvido para gestão empresarial</span>
+     </div>
+     <div class="flex items-center gap-4"><span class="flex items-center gap-2"> <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sistema Online </span>
+     </div>
+    </div>
+   </footer>
+  </div>
+  <script>
+    // Default Configuration
+    const defaultConfig = {
+      company_name: 'Empresa ABC Ltda',
+      dashboard_title: 'Dashboard Financeiro',
+      primary_color: '#3b82f6',
+      secondary_color: '#10b981',
+      background_color: '#0f172a',
+      surface_color: '#1e293b',
+      text_color: '#f8fafc'
+    };
+
+    let config = { ...defaultConfig };
+    let charts = {};
+
+    // Sample Data
+    const contasReceber = [
+      { cliente: 'Tech Solutions Ltda', emissao: '2024-01-05', vencimento: '2024-02-05', valor: 45230.00, status: 'pendente', formaPgto: 'Boleto' },
+      { cliente: 'Indústria Beta S.A.', emissao: '2024-01-10', vencimento: '2024-01-25', valor: 78450.00, status: 'atrasado', formaPgto: 'Transferência' },
+      { cliente: 'Comércio Delta ME', emissao: '2024-01-15', vencimento: '2024-02-15', valor: 32100.00, status: 'pendente', formaPgto: 'PIX' },
+      { cliente: 'Serviços Gama Ltda', emissao: '2024-01-03', vencimento: '2024-01-20', valor: 15890.00, status: 'pago', formaPgto: 'Cartão' },
+      { cliente: 'Atacado Omega', emissao: '2024-01-08', vencimento: '2024-02-08', valor: 67500.00, status: 'pendente', formaPgto: 'Boleto' },
+      { cliente: 'Distribuidora Sigma', emissao: '2024-01-12', vencimento: '2024-02-12', valor: 89340.00, status: 'pendente', formaPgto: 'Transferência' },
+      { cliente: 'Varejo Zeta', emissao: '2023-12-20', vencimento: '2024-01-20', valor: 23450.00, status: 'atrasado', formaPgto: 'Boleto' },
+      { cliente: 'Logística Alpha', emissao: '2024-01-18', vencimento: '2024-02-18', valor: 54200.00, status: 'pendente', formaPgto: 'PIX' }
+    ];
+
+    const contasPagar = [
+      { fornecedor: 'Fornecedor A', categoria: 'Matéria Prima', vencimento: '2024-02-10', valor: 34500.00, status: 'pendente', centroCusto: 'Produção' },
+      { fornecedor: 'Energia Elétrica', categoria: 'Utilidades', vencimento: '2024-01-25', valor: 12890.00, status: 'pago', centroCusto: 'Administrativo' },
+      { fornecedor: 'Aluguel Sede', categoria: 'Infraestrutura', vencimento: '2024-02-05', valor: 28000.00, status: 'pendente', centroCusto: 'Administrativo' },
+      { fornecedor: 'Fornecedor B', categoria: 'Embalagens', vencimento: '2024-01-20', valor: 8750.00, status: 'atrasado', centroCusto: 'Produção' },
+      { fornecedor: 'Consultoria TI', categoria: 'Serviços', vencimento: '2024-02-15', valor: 15000.00, status: 'pendente', centroCusto: 'TI' },
+      { fornecedor: 'Marketing Digital', categoria: 'Marketing', vencimento: '2024-02-01', valor: 9500.00, status: 'pendente', centroCusto: 'Comercial' },
+      { fornecedor: 'Seguros Empresariais', categoria: 'Seguros', vencimento: '2024-02-20', valor: 6800.00, status: 'pendente', centroCusto: 'Administrativo' },
+      { fornecedor: 'Manutenção Predial', categoria: 'Manutenção', vencimento: '2024-01-30', valor: 4200.00, status: 'pago', centroCusto: 'Administrativo' }
+    ];
+
+    // Initialize Element SDK
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: async (newConfig) => {
+          config = { ...config, ...newConfig };
+          updateUI();
+        },
+        mapToCapabilities: (cfg) => ({
+          recolorables: [
+            {
+              get: () => cfg.primary_color || defaultConfig.primary_color,
+              set: (v) => { cfg.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); }
+            },
+            {
+              get: () => cfg.secondary_color || defaultConfig.secondary_color,
+              set: (v) => { cfg.secondary_color = v; window.elementSdk.setConfig({ secondary_color: v }); }
+            },
+            {
+              get: () => cfg.background_color || defaultConfig.background_color,
+              set: (v) => { cfg.background_color = v; window.elementSdk.setConfig({ background_color: v }); }
+            },
+            {
+              get: () => cfg.surface_color || defaultConfig.surface_color,
+              set: (v) => { cfg.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }
+            },
+            {
+              get: () => cfg.text_color || defaultConfig.text_color,
+              set: (v) => { cfg.text_color = v; window.elementSdk.setConfig({ text_color: v }); }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (cfg) => new Map([
+          ['company_name', cfg.company_name || defaultConfig.company_name],
+          ['dashboard_title', cfg.dashboard_title || defaultConfig.dashboard_title]
+        ])
+      });
+    }
+
+    function updateUI() {
+      document.getElementById('dashboard-title').textContent = config.dashboard_title || defaultConfig.dashboard_title;
+      document.getElementById('company-name').textContent = config.company_name || defaultConfig.company_name;
+    }
+
+    // Navigation
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+      document.getElementById(sectionId).classList.remove('hidden');
+      document.getElementById(sectionId).classList.add('animate-fade');
+      
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('tab-active');
+        btn.classList.add('bg-slate-700', 'hover:bg-slate-600');
+      });
+      document.querySelector(`[data-tab="${sectionId}"]`).classList.add('tab-active');
+      document.querySelector(`[data-tab="${sectionId}"]`).classList.remove('bg-slate-700', 'hover:bg-slate-600');
+      
+      // Initialize charts for the section
+      setTimeout(() => initSectionCharts(sectionId), 100);
+    }
+
+    function setFluxoPeriodo(periodo) {
+      document.querySelectorAll('.fluxo-btn').forEach(btn => {
+        btn.classList.remove('gradient-blue');
+        btn.classList.add('bg-slate-700', 'hover:bg-slate-600');
+      });
+      document.querySelector(`[data-periodo="${periodo}"]`).classList.add('gradient-blue');
+      document.querySelector(`[data-periodo="${periodo}"]`).classList.remove('bg-slate-700', 'hover:bg-slate-600');
+      updateFluxoData(periodo);
+    }
+
+    function updateFluxoData(periodo) {
+      const data = {
+        mes: { entradas: 'R$ 1.245.780,00', saidas: 'R$ 876.420,00', saldo: 'R$ 369.360,00' },
+        trimestre: { entradas: 'R$ 3.687.450,00', saidas: 'R$ 2.543.890,00', saldo: 'R$ 1.143.560,00' },
+        ano: { entradas: 'R$ 14.567.890,00', saidas: 'R$ 10.234.560,00', saldo: 'R$ 4.333.330,00' }
+      };
+      document.getElementById('fluxo-entradas').textContent = data[periodo].entradas;
+      document.getElementById('fluxo-saidas').textContent = data[periodo].saidas;
+      document.getElementById('fluxo-saldo').textContent = data[periodo].saldo;
+    }
+
+    // Filters
+    function applyFilters() {
+      renderTables();
+    }
+
+    function clearFilters() {
+      document.getElementById('filter-periodo').value = 'all';
+      document.getElementById('filter-status').value = 'all';
+      document.getElementById('filter-categoria').value = 'all';
+      renderTables();
+    }
+
+    // Tables
+    function renderTables() {
+      renderTableReceber();
+      renderTablePagar();
+    }
+
+    function renderTableReceber() {
+      const statusFilter = document.getElementById('filter-status').value;
+      let data = contasReceber;
+      if (statusFilter !== 'all') {
+        data = data.filter(item => item.status === statusFilter);
+      }
+      
+      const tbody = document.getElementById('table-receber');
+      tbody.innerHTML = data.map(item => `
+        <tr class="table-row border-b border-slate-700 transition-colors">
+          <td class="p-4">
+            <div class="font-medium">${item.cliente}</div>
+          </td>
+          <td class="p-4 text-slate-400">${formatDate(item.emissao)}</td>
+          <td class="p-4 text-slate-400">${formatDate(item.vencimento)}</td>
+          <td class="p-4 text-right font-medium">${formatCurrency(item.valor)}</td>
+          <td class="p-4 text-center">
+            <span class="px-2 py-1 rounded-full text-xs font-medium status-${item.status}">${capitalize(item.status)}</span>
+          </td>
+          <td class="p-4 text-slate-400">${item.formaPgto}</td>
+          <td class="p-4 text-center">
+            <button class="p-1 hover:bg-slate-600 rounded transition-colors" title="Editar">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderTablePagar() {
+      const statusFilter = document.getElementById('filter-status').value;
+      let data = contasPagar;
+      if (statusFilter !== 'all') {
+        data = data.filter(item => item.status === statusFilter);
+      }
+      
+      const tbody = document.getElementById('table-pagar');
+      tbody.innerHTML = data.map(item => `
+        <tr class="table-row border-b border-slate-700 transition-colors">
+          <td class="p-4">
+            <div class="font-medium">${item.fornecedor}</div>
+          </td>
+          <td class="p-4">
+            <span class="px-2 py-1 rounded bg-slate-700 text-xs">${item.categoria}</span>
+          </td>
+          <td class="p-4 text-slate-400">${formatDate(item.vencimento)}</td>
+          <td class="p-4 text-right font-medium">${formatCurrency(item.valor)}</td>
+          <td class="p-4 text-center">
+            <span class="px-2 py-1 rounded-full text-xs font-medium status-${item.status}">${capitalize(item.status)}</span>
+          </td>
+          <td class="p-4 text-slate-400">${item.centroCusto}</td>
+          <td class="p-4 text-center">
+            <button class="p-1 hover:bg-slate-600 rounded transition-colors" title="Editar">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Utilities
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+    }
+
+    function formatDate(dateStr) {
+      return new Date(dateStr).toLocaleDateString('pt-BR');
+    }
+
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function refreshData() {
+      document.getElementById('last-update').textContent = new Date().toLocaleString('pt-BR');
+    }
+
+    // Charts Configuration
+    const chartColors = {
+      blue: 'rgba(59, 130, 246, 1)',
+      blueLight: 'rgba(59, 130, 246, 0.2)',
+      green: 'rgba(16, 185, 129, 1)',
+      greenLight: 'rgba(16, 185, 129, 0.2)',
+      red: 'rgba(239, 68, 68, 1)',
+      redLight: 'rgba(239, 68, 68, 0.2)',
+      orange: 'rgba(245, 158, 11, 1)',
+      purple: 'rgba(139, 92, 246, 1)',
+      cyan: 'rgba(6, 182, 212, 1)',
+      indigo: 'rgba(99, 102, 241, 1)',
+      pink: 'rgba(236, 72, 153, 1)',
+      yellow: 'rgba(234, 179, 8, 1)'
+    };
+
+    const chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: '#94a3b8', font: { family: 'Inter' } }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(71, 85, 105, 0.3)' },
+          ticks: { color: '#94a3b8' }
+        },
+        y: {
+          grid: { color: 'rgba(71, 85, 105, 0.3)' },
+          ticks: { color: '#94a3b8' }
+        }
+      }
+    };
+
+    function initSectionCharts(section) {
+      if (section === 'visao-geral') {
+        initVisaoGeralCharts();
+      } else if (section === 'contas-receber') {
+        initContasReceberCharts();
+      } else if (section === 'contas-pagar') {
+        initContasPagarCharts();
+      } else if (section === 'controle-contabil') {
+        initControleContabilCharts();
+      } else if (section === 'fluxo-caixa') {
+        initFluxoCaixaCharts();
+      }
+    }
+
+    function initVisaoGeralCharts() {
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      
+      // Fluxo Mensal Chart
+      if (charts.fluxoMensal) charts.fluxoMensal.destroy();
+      const ctxFluxo = document.getElementById('chart-fluxo-mensal');
+      if (ctxFluxo) {
+        charts.fluxoMensal = new Chart(ctxFluxo, {
+          type: 'line',
+          data: {
+            labels: months,
+            datasets: [{
+              label: 'Fluxo de Caixa',
+              data: [180000, 195000, 210000, 185000, 220000, 245000, 230000, 260000, 275000, 290000, 310000, 369360],
+              borderColor: chartColors.cyan,
+              backgroundColor: chartColors.blueLight,
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: chartOptions
+        });
+      }
+
+      // Receitas vs Despesas Chart
+      if (charts.receitasDespesas) charts.receitasDespesas.destroy();
+      const ctxRD = document.getElementById('chart-receitas-despesas');
+      if (ctxRD) {
+        charts.receitasDespesas = new Chart(ctxRD, {
+          type: 'bar',
+          data: {
+            labels: months,
+            datasets: [
+              {
+                label: 'Receitas',
+                data: [85000, 92000, 98000, 88000, 105000, 115000, 108000, 120000, 125000, 135000, 145000, 125000],
+                backgroundColor: chartColors.green,
+                borderRadius: 4
+              },
+              {
+                label: 'Despesas',
+                data: [65000, 70000, 72000, 68000, 78000, 82000, 80000, 88000, 92000, 95000, 100000, 87000],
+                backgroundColor: chartColors.red,
+                borderRadius: 4
+              }
+            ]
+          },
+          options: chartOptions
+        });
+      }
+    }
+
+    function initContasReceberCharts() {
+      // Valores a Receber por Mês
+      if (charts.receberMes) charts.receberMes.destroy();
+      const ctxReceberMes = document.getElementById('chart-receber-mes');
+      if (ctxReceberMes) {
+        charts.receberMes = new Chart(ctxReceberMes, {
+          type: 'bar',
+          data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+            datasets: [{
+              label: 'A Receber',
+              data: [45230, 89340, 67500, 54200, 32100, 78450],
+              backgroundColor: chartColors.green,
+              borderRadius: 4
+            }]
+          },
+          options: chartOptions
+        });
+      }
+
+      // Inadimplência
+      if (charts.inadimplencia) charts.inadimplencia.destroy();
+      const ctxInad = document.getElementById('chart-inadimplencia');
+      if (ctxInad) {
+        charts.inadimplencia = new Chart(ctxInad, {
+          type: 'doughnut',
+          data: {
+            labels: ['Em Dia', 'Até 30 dias', '31-60 dias', '+60 dias'],
+            datasets: [{
+              data: [65, 18, 12, 5],
+              backgroundColor: [chartColors.green, chartColors.orange, chartColors.red, '#7f1d1d']
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: '#94a3b8', font: { family: 'Inter' } }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function initContasPagarCharts() {
+      // Despesas por Categoria
+      if (charts.despesasCategoria) charts.despesasCategoria.destroy();
+      const ctxCat = document.getElementById('chart-despesas-categoria');
+      if (ctxCat) {
+        charts.despesasCategoria = new Chart(ctxCat, {
+          type: 'doughnut',
+          data: {
+            labels: ['Matéria Prima', 'Utilidades', 'Infraestrutura', 'Serviços', 'Marketing', 'Outros'],
+            datasets: [{
+              data: [35, 12, 22, 15, 8, 8],
+              backgroundColor: [chartColors.blue, chartColors.green, chartColors.purple, chartColors.orange, chartColors.pink, chartColors.cyan]
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: '#94a3b8', font: { family: 'Inter' } }
+              }
+            }
+          }
+        });
+      }
+
+      // Despesas Mensais
+      if (charts.despesasMensal) charts.despesasMensal.destroy();
+      const ctxDesp = document.getElementById('chart-despesas-mensal');
+      if (ctxDesp) {
+        charts.despesasMensal = new Chart(ctxDesp, {
+          type: 'line',
+          data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+            datasets: [{
+              label: 'Despesas',
+              data: [65000, 72000, 68000, 75000, 82000, 78000],
+              borderColor: chartColors.red,
+              backgroundColor: chartColors.redLight,
+              fill: true,
+              tension: 0.4
+            }]
+          },
+          options: chartOptions
+        });
+      }
+    }
+
+    function initControleContabilCharts() {
+      if (charts.resultado) charts.resultado.destroy();
+      const ctxRes = document.getElementById('chart-resultado');
+      if (ctxRes) {
+        charts.resultado = new Chart(ctxRes, {
+          type: 'line',
+          data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+            datasets: [
+              {
+                label: 'Receita Líquida',
+                data: [95000, 102000, 98000, 115000, 125000, 118000, 130000, 135000, 142000, 150000, 160000, 125000],
+                borderColor: chartColors.blue,
+                backgroundColor: 'transparent',
+                tension: 0.4
+              },
+              {
+                label: 'Resultado',
+                data: [25000, 28000, 26000, 32000, 38000, 35000, 42000, 45000, 48000, 52000, 58000, 37000],
+                borderColor: chartColors.green,
+                backgroundColor: chartColors.greenLight,
+                fill: true,
+                tension: 0.4
+              }
+            ]
+          },
+          options: chartOptions
+        });
+      }
+    }
+
+    function initFluxoCaixaCharts() {
+      if (charts.fluxoDetalhado) charts.fluxoDetalhado.destroy();
+      const ctxFluxo = document.getElementById('chart-fluxo-detalhado');
+      if (ctxFluxo) {
+        charts.fluxoDetalhado = new Chart(ctxFluxo, {
+          type: 'bar',
+          data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+            datasets: [
+              {
+                label: 'Entradas',
+                data: [95000, 102000, 98000, 115000, 125000, 118000, 130000, 135000, 142000, 150000, 160000, 125000],
+                backgroundColor: chartColors.green,
+                borderRadius: 4
+              },
+              {
+                label: 'Saídas',
+                data: [-70000, -74000, -72000, -83000, -87000, -83000, -88000, -90000, -94000, -98000, -102000, -88000],
+                backgroundColor: chartColors.red,
+                borderRadius: 4
+              },
+              {
+                label: 'Saldo',
+                data: [25000, 28000, 26000, 32000, 38000, 35000, 42000, 45000, 48000, 52000, 58000, 37000],
+                type: 'line',
+                borderColor: chartColors.cyan,
+                backgroundColor: 'transparent',
+                tension: 0.4,
+                yAxisID: 'y1'
+              }
+            ]
+          },
+          options: {
+            ...chartOptions,
+            scales: {
+              ...chartOptions.scales,
+              y1: {
+                type: 'linear',
+                position: 'right',
+                grid: { display: false },
+                ticks: { color: '#94a3b8' }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      refreshData();
+      renderTables();
+      initVisaoGeralCharts();
+      updateUI();
+    });
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9da1ede76155e0f9',t:'MTc3MzE0MTYxOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
